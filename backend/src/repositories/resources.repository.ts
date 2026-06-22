@@ -1,192 +1,192 @@
-import { randomUUID }
-from "crypto";
-
-import {
-  ResourceResponseDto
-}
-from "../dtos/resource-response.dto";
+import { all, get, run } from "../db/dbClient";
 
 import {
   CreateResourceRequestDto
-}
-from "../dtos/create-resource-request.dto";
+} from "../dtos/create-resource-request.dto";
 
 import {
   UpdateResourceRequestDto
-}
-from "../dtos/update-resource-request.dto";
-
-const resources: ResourceResponseDto[] = [];
-
-export function getAll(
+} from "../dtos/update-resource-request.dto";
+type ResourceRow = {
+  id: number;
+  title: string;
+  author: string;
+  type: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+export async function getAll(
   page?: number,
   pageSize?: number,
   sortBy?: string,
   sortDir?: string
 ) {
+  let sql = `
+    SELECT *
+    FROM Resources
+    WHERE rating >= 1
+  `;
+  const allowedSortFields = [
+    "id",
+    "title",
+    "author",
+    "type",
+    "rating",
+    "createdAt"
+  ];
+  if (sortBy && allowedSortFields.includes(sortBy)) {
+    const direction = sortDir === "desc" ? "DESC" : "ASC";
 
-  const result = [...resources];
-
-  if (sortBy) {
-
-    result.sort((a, b) => {
-
-      const aValue =
-        a[
-          sortBy as keyof ResourceResponseDto
-        ];
-
-      const bValue =
-        b[
-          sortBy as keyof ResourceResponseDto
-        ];
-
-      if (aValue < bValue) {
-        return sortDir === "desc"
-          ? 1
-          : -1;
-      }
-
-      if (aValue > bValue) {
-        return sortDir === "desc"
-          ? -1
-          : 1;
-      }
-
-      return 0;
-    });
+    sql += `
+      ORDER BY ${sortBy} ${direction}
+    `;
+  } else {
+    sql += `
+      ORDER BY id DESC
+    `;
+  }
+  if (page && pageSize) {
+    const offset = (page - 1) * pageSize;
+    sql += `
+      LIMIT ${pageSize}
+      OFFSET ${offset}
+    `;
   }
 
-  if (
-    !page ||
-    !pageSize
-  ) {
+  sql += ";";
 
-    return result;
-  }
-
-  const start =
-    (page - 1) * pageSize;
-
-  const end =
-    start + pageSize;
-
-  return result.slice(
-    start,
-    end
-  );
-} 
-
-export function patch(
-  id: string,
-  dto: UpdateResourceRequestDto
-) {
-
-  const resource =
-    resources.find(
-      resource =>
-        resource.id === id
-    );
-
-  if (!resource) {
-
-    throw {
-      status: 404,
-      message:
-        "Resource not found"
-    };
-  }
-
-  Object.assign(
-    resource,
-    dto
-  );
-
-  return resource;
+  return await all(sql);
 }
 
-export function getById(
-  id: string
-) {
+export async function getById(
+  id: number
+): Promise<ResourceRow | null> {
 
-  return resources.find(
-    resource =>
-      resource.id === id
-  );
+  return await get(`
+    SELECT *
+    FROM Resources
+    WHERE id = ${id};
+  `)as ResourceRow | null;
 }
 
-export function create(
+export async function create(
   dto: CreateResourceRequestDto
 ) {
+  const result = await run(`
+    INSERT INTO Resources
+    (
+      title,
+      author,
+      type,
+      rating,
+      comment,
+      createdAt
+    )
+    VALUES
+    (
+      '${dto.title}',
+      '${dto.author}',
+      '${dto.type}',
+      ${dto.rating},
+      '${dto.comment ?? ""}',
+      '${new Date().toISOString()}'
+    );
+  `);
 
-  const resource = {
-
-    id: randomUUID(),
-
-    title: dto.title,
-
-    author: dto.author,
-
-    type: dto.type,
-
-    rating: dto.rating,
-
-    comment: dto.comment
-  };
-
-  resources.push(resource);
-
-  return resource;
+  return await getById(result.lastID);
 }
 
-export function update(
-  id: string,
+export async function update(
+  id: number,
   dto: UpdateResourceRequestDto
 ) {
 
-  const resource =
-    resources.find(
-      resource =>
-        resource.id === id
-    );
+  const result = await run(`
+    UPDATE Resources
+    SET
+      title='${dto.title}',
+      author='${dto.author}',
+      type='${dto.type}',
+      rating=${dto.rating},
+      comment='${dto.comment}'
+    WHERE id=${id};
+  `);
 
-  if (!resource) {
+  if (result.changes === 0) {
     return null;
   }
 
-  resource.title =
-    dto.title;
-
-  resource.author =
-    dto.author;
-
-  resource.type =
-    dto.type;
-
-  resource.rating =
-    dto.rating;
-
-  resource.comment =
-    dto.comment;
-
-  return resource;
+  return await getById(id);
 }
 
-export function remove(
-  id: string
+export async function remove(
+  id: number
 ) {
 
-  const index =
-    resources.findIndex(
-      resource =>
-        resource.id === id
-    );
+  const result = await run(`
+    DELETE FROM Resources
+    WHERE id=${id};
+  `);
 
-  if (index === -1) {
-    return false;
+  return result.changes > 0;
+}
+export async function getResourcesWithReviews() {
+  return await all(`
+    SELECT
+      r.id as resourceId,
+      r.title,
+      r.author,
+      r.type,
+      r.rating as resourceRating,
+      rv.id as reviewId,
+      rv.text as reviewText,
+      rv.rating as reviewRating,
+      u.name as userName
+    FROM Resources r
+    LEFT JOIN Reviews rv
+      ON rv.resourceId = r.id
+    LEFT JOIN Users u
+      ON u.id = rv.userId
+    ORDER BY r.id DESC;
+  `);
+}
+export async function getAverageRating() {
+
+  return await get(`
+    SELECT
+      AVG(rating) as avgRating,
+      COUNT(*) as totalResources
+    FROM Resources;
+  `);
+
+}
+export async function patch(
+  id: number,
+  dto: UpdateResourceRequestDto
+) {
+  const current = await getById(id);
+
+  if (!current) {
+    return null;
   }
 
-  resources.splice(index, 1);
+  const title = dto.title ?? current.title;
+  const author = dto.author ?? current.author;
+  const type = dto.type ?? current.type;
+  const rating = dto.rating ?? current.rating;
+  const comment = dto.comment ?? current.comment ?? "";
 
-  return true;
+  await run(`
+    UPDATE Resources
+    SET
+      title = '${title}',
+      author = '${author}',
+      type = '${type}',
+      rating = ${rating},
+      comment = '${comment}'
+    WHERE id = ${id};
+  `);
+
+  return await getById(id);
 }

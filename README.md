@@ -1,327 +1,217 @@
-# Users & Resources REST API
+# Лабораторна робота №3
 
-## Опис проекту
+## Тема
 
-REST API на Node.js + Express + TypeScript без використання бази даних.
-Дані зберігаються лише в оперативній пам’яті.
+SQLite: реляційна модель, схема даних, CRUD-запити, підключення SQLite у бекенді.
 
-Проект реалізує CRUD-операції для двох сутностей:
+## Опис проєкту
 
-* Users
-* Resources
+Проєкт реалізовано на Node.js, Express та TypeScript.
 
-API підтримує:
+У лабораторній роботі дані зберігаються в SQLite, а не в масивах у пам'яті.
 
-* CRUD
-* DTO
-* Validation middleware
-* Centralized error handler
-* Logging middleware
-* Pagination
-* Sorting
-* PATCH
-* Swagger UI
-* ESLint
+## Запуск проєкту
 
----
-
-# Технології
-
-* Node.js
-* Express
-* TypeScript
-* Swagger UI
-* ESLint
-
----
-
-# Запуск проекту
-
-## Встановлення залежностей
+Встановлення залежностей:
 
 ```bash
 npm install
 ```
 
----
-
-## Запуск dev-сервера
+Запуск у режимі розробки:
 
 ```bash
 npm run dev
 ```
 
----
-
-## TypeScript build
+Збірка проєкту:
 
 ```bash
-npx tsc
+npm run build
 ```
 
----
-
-## ESLint перевірка
+Запуск seed:
 
 ```bash
-npx eslint src --ext .ts
+npm run seed
 ```
 
----
+## База даних
 
-# Swagger
-
-Swagger документація доступна за адресою:
+Файл бази даних:
 
 ```text
-http://localhost:3000/api-docs
+data/app.db
 ```
 
----
+### Таблиці
 
-# Структура проекту
+#### Users
 
-my-lab2/
-│
-├── dist/
-├── node_modules/
-├── src/
-│   ├── controllers/
-│   ├── dtos/
-│   ├── middleware/
-│   ├── repositories/
-│   ├── routes/
-│   ├── services/
-│   ├── index.ts
-│   └── swagger.ts
-│
-├── eslint.config.mjs
-├── package.json
-├── package-lock.json
-├── README.md
-└── tsconfig.json
-
----
-
-# Сутності
-
-## Users
-
-Поля:
-
-* id
+* id (PK)
 * name
-* email
+* email (UNIQUE)
+* createdAt
 
----
+#### Resources
 
-## Resources
-
-Поля:
-
-* id
+* id (PK)
 * title
 * author
 * type
 * rating
 * comment
+* createdAt
 
----
+#### Reviews
 
-# API Endpoints
+* id (PK)
+* resourceId (FK → Resources.id)
+* userId (FK → Users.id)
+* text
+* rating
+* createdAt
 
-## Users
+### Зв'язки
 
-### GET all users
+Users (1) → (N) Reviews
+
+Resources (1) → (N) Reviews
+
+Увімкнено:
+
+```sql
+PRAGMA foreign_keys = ON;
+```
+
+## Обмеження
+
+### NOT NULL
+
+Використовується для обов'язкових полів:
+
+* name
+* email
+* title
+* author
+* type
+* rating
+* text
+
+### UNIQUE
+
+```sql
+email TEXT NOT NULL UNIQUE
+```
+
+### CHECK
+
+```sql
+CHECK(rating >= 1 AND rating <= 5)
+```
+
+## Індекс
+
+Для прискорення пошуку відгуків за ресурсом:
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_reviews_resourceId
+ON Reviews(resourceId);
+```
+
+Індекс використовується під час пошуку відгуків за resourceId.
+
+## API Endpoints
+
+### Users
+
+* GET /api/users
+* GET /api/users/:id
+* POST /api/users
+* PUT /api/users/:id
+* DELETE /api/users/:id
+
+### Resources
+
+* GET /api/resources
+* GET /api/resources/:id
+* POST /api/resources
+* PUT /api/resources/:id
+* PATCH /api/resources/:id
+* DELETE /api/resources/:id
+
+### Reviews
+
+* GET /api/reviews
+* GET /api/reviews/:id
+* POST /api/reviews
+* PATCH /api/reviews/:id
+* DELETE /api/reviews/:id
+
+## JOIN Endpoint
 
 ```http
-GET /api/users
+GET /api/resources/with-reviews
 ```
 
----
+Повертає ресурси разом із відгуками та користувачами.
 
-### GET user by id
+## Endpoint статистики
 
 ```http
-GET /api/users/:id
+GET /api/resources/stats
 ```
 
----
+Повертає:
 
-### POST create user
+* середній рейтинг ресурсів;
+* загальну кількість ресурсів.
 
-```http
-POST /api/users
-```
+## Приклади запитів
 
-Body:
-
-```json
-{
-  "name": "Ivan",
-  "email": "ivan@gmail.com"
-}
-```
-
----
-
-### PUT update user
-
-```http
-PUT /api/users/:id
-```
-
----
-
-### DELETE user
-
-```http
-DELETE /api/users/:id
-```
-
----
-
-# Resources
-
-### GET all resources
+Отримати всі ресурси:
 
 ```http
 GET /api/resources
 ```
 
----
-
-### GET resource by id
+Отримати ресурси з пагінацією:
 
 ```http
-GET /api/resources/:id
+GET /api/resources?page=1&pageSize=5
 ```
 
----
-
-### POST create resource
+Отримати ресурси з відгуками:
 
 ```http
-POST /api/resources
+GET /api/resources/with-reviews
 ```
 
-Body:
+Отримати статистику:
+
+```http
+GET /api/resources/stats
+```
+
+## Формат помилок
 
 ```json
 {
-  "title": "React Book",
-  "author": "Petro",
-  "type": "Book",
-  "rating": 5,
-  "comment": "Nice"
+  "code": "NOT_FOUND",
+  "message": "Resource not found"
 }
 ```
 
----
+## Логування
 
-### PUT update resource
-
-```http
-PUT /api/resources/:id
-```
-
----
-
-### PATCH update resource
-
-```http
-PATCH /api/resources/:id
-```
-
-Body:
-
-```json
-{
-  "rating": 3
-}
-```
-
----
-
-### DELETE resource
-
-```http
-DELETE /api/resources/:id
-```
-
----
-
-# Pagination
-
-Приклад:
-
-```http
-GET /api/resources?page=1&pageSize=2
-```
-
----
-
-# Sorting
-
-Приклад:
-
-```http
-GET /api/resources?sortBy=rating&sortDir=desc
-```
-
----
-
-# Validation
-
-Реалізована серверна валідація:
-
-* required fields
-* allowed values
-* range validation
-* length validation
-
-При помилці API повертає:
-
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid request body",
-    "details": []
-  }
-}
-```
-
----
-
-# Logging
-
-Кожен HTTP-запит логуються у форматі:
+При запуску застосунку виводяться повідомлення:
 
 ```text
-GET /api/resources 200 2ms
+SQLite connected
+Migration applied: 001_init_users.sql
+Migration applied: 002_init_resources.sql
+Migration applied: 003_init_reviews.sql
+Migration applied: 004_add_indexes.sql
+Server started
 ```
 
----
-
-# Error Handling
-
-Реалізований centralized error handler middleware.
-
-Підтримуються статуси:
-
-* 200 OK
-* 201 Created
-* 204 No Content
-* 400 Bad Request
-* 404 Not Found
-* 409 Conflict
-* 500 Internal Server Error
-
----
-
-# Дані
-
-База даних не використовується.
-
-Дані зберігаються лише в оперативній пам’яті та зникають після перезапуску сервера.

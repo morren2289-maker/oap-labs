@@ -48,7 +48,6 @@ export function validateResource(
       "Type is required"
     );
   }
-
   // length
 
   if (

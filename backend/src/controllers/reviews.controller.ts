@@ -4,8 +4,8 @@ import {
   NextFunction
 } from "express";
 
-import * as usersService
-from "../services/users.service";
+import * as reviewsService
+from "../services/reviews.service";
 
 export async function getAll(
   req: Request,
@@ -13,16 +13,15 @@ export async function getAll(
   next: NextFunction
 ) {
   try {
-    const search =
-      req.query.search as string;
+    const resourceId = req.query.resourceId
+      ? Number(req.query.resourceId)
+      : undefined;
 
-    const users =
-      await usersService.getAllUsers(
-        search
-      );
+    const reviews =
+      await reviewsService.getAllReviews(resourceId);
 
     return res.status(200).json({
-      items: users
+      items: reviews
     });
   } catch (err) {
     next(err);
@@ -35,13 +34,13 @@ export async function getById(
   next: NextFunction
 ) {
   try {
-    const user =
-      await usersService.getUserById(
+    const review =
+      await reviewsService.getReviewById(
         Number(req.params.id)
       );
 
     return res.status(200).json({
-      data: user
+      data: review
     });
   } catch (err) {
     next(err);
@@ -54,16 +53,14 @@ export async function create(
   next: NextFunction
 ) {
   try {
-    const user =
-      await usersService.createUser(
+    const review =
+      await reviewsService.createReview(
         req.body
       );
 
-    return res
-      .status(201)
-      .json({
-        data: user
-      });
+    return res.status(201).json({
+      data: review
+    });
   } catch (err) {
     next(err);
   }
@@ -75,14 +72,14 @@ export async function update(
   next: NextFunction
 ) {
   try {
-    const updatedUser =
-      await usersService.update(
+    const review =
+      await reviewsService.updateReview(
         Number(req.params.id),
         req.body
       );
 
     return res.status(200).json({
-      data: updatedUser
+      data: review
     });
   } catch (err) {
     next(err);
@@ -95,13 +92,11 @@ export async function remove(
   next: NextFunction
 ) {
   try {
-    await usersService.remove(
+    await reviewsService.deleteReview(
       Number(req.params.id)
     );
 
-    return res
-      .status(204)
-      .send();
+    return res.status(204).send();
   } catch (err) {
     next(err);
   }

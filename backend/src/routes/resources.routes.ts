@@ -10,6 +10,7 @@ import * as resourcesController
 from "../controllers/resources.controller";
 
 const router = Router();
+
 /**
  * @swagger
  * /api/resources:
@@ -23,6 +24,35 @@ router.get(
   "/",
   resourcesController.getAll
 );
+
+/**
+ * @swagger
+ * /api/resources/with-reviews:
+ *   get:
+ *     summary: Get resources with reviews
+ *     responses:
+ *       200:
+ *         description: Resources with reviews
+ */
+router.get(
+  "/with-reviews",
+  resourcesController.getWithReviews
+);
+
+/**
+ * @swagger
+ * /api/resources/stats:
+ *   get:
+ *     summary: Get resources statistics
+ *     responses:
+ *       200:
+ *         description: Resources statistics
+ */
+router.get(
+  "/stats",
+  resourcesController.getStats
+);
+
 /**
  * @swagger
  * /api/resources/{id}:
@@ -31,11 +61,14 @@ router.get(
  *     responses:
  *       200:
  *         description: Resource found
+ *       404:
+ *         description: Resource not found
  */
 router.get(
   "/:id",
   resourcesController.getById
 );
+
 /**
  * @swagger
  * /api/resources:
@@ -50,6 +83,7 @@ router.post(
   validateResource,
   resourcesController.create
 );
+
 /**
  * @swagger
  * /api/resources/{id}:
@@ -58,12 +92,31 @@ router.post(
  *     responses:
  *       200:
  *         description: Resource updated
+ *       404:
+ *         description: Resource not found
  */
 router.put(
   "/:id",
   validateResource,
   resourcesController.update
 );
+
+/**
+ * @swagger
+ * /api/resources/{id}:
+ *   patch:
+ *     summary: Patch resource
+ *     responses:
+ *       200:
+ *         description: Resource patched
+ *       404:
+ *         description: Resource not found
+ */
+router.patch(
+  "/:id",
+  resourcesController.patch
+);
+
 /**
  * @swagger
  * /api/resources/{id}:
@@ -72,16 +125,12 @@ router.put(
  *     responses:
  *       204:
  *         description: Resource deleted
+ *       404:
+ *         description: Resource not found
  */
 router.delete(
   "/:id",
   resourcesController.remove
-
-);
-
- router.patch(
-  "/:id",
-  resourcesController.patch
 );
 
 export default router;

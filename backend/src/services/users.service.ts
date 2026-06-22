@@ -11,64 +11,97 @@ import {
 }
 from "../dtos/create-user-request.dto";
 
-export function getAllUsers(
+export async function getAllUsers(
   search?: string
-)
-{
-
-  return usersRepository.getAll(
-    search
-  );
+) {
+  return await usersRepository.getAll(search);
 }
-export function createUser(
-  dto: CreateUserRequestDto
-)
-{
 
+export async function createUser(
+  dto: CreateUserRequestDto
+) {
   if (
     !dto.name ||
     !dto.email
   ) {
-
     throw {
       status: 400,
-      message:
-        "Name and email are required"
+      message: "Name and email are required"
     };
   }
 
   const existingUser =
-    usersRepository.findByEmail(
+    await usersRepository.findByEmail(
       dto.email
     );
 
   if (existingUser) {
-
     throw {
       status: 409,
-      message:
-        "User already exists"
+      message: "User already exists"
     };
   }
 
-  return usersRepository.create(dto);
+  return await usersRepository.create(dto);
 }
-export function update(
+export async function getUserById(
+  id: number
+) {
+  const user = await usersRepository.getById(id);
+
+  if (!user) {
+    throw {
+      status: 404,
+      code: "NOT_FOUND",
+      message: "User not found"
+    };
+  }
+
+  return user;
+}
+export async function update(
   id: number,
   data: UpdateUserRequestDto
 ) {
+  if (
+    !data.name ||
+    !data.email
+  ) {
+    throw {
+      status: 400,
+      code: "VALIDATION_ERROR",
+      message: "Name and email are required"
+    };
+  }
 
-  return usersRepository.update(
-    id,
-    data
-  );
+  const updated =
+    await usersRepository.update(
+      id,
+      data
+    );
+
+  if (!updated) {
+    throw {
+      status: 404,
+      code: "NOT_FOUND",
+      message: "User not found"
+    };
+  }
+
+  return updated;
 }
 
-export function remove(
+export async function remove(
   id: number
 ) {
+  const deleted = await usersRepository.remove(id);
 
-  return usersRepository.remove(
-    id
-  );
+  if (!deleted) {
+    throw {
+      status: 404,
+      message: "User not found"
+    };
+  }
+
+  return deleted;
 }

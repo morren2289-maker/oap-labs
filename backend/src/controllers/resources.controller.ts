@@ -7,7 +7,7 @@ import {
 import * as resourcesService
 from "../services/resources.service";
 
-export function getAll(
+export async function getAll(
   req: Request,
   res: Response,
   next: NextFunction
@@ -29,7 +29,7 @@ const sortDir =
   String(req.query.sortDir || "asc");
 
 const resources =
-  resourcesService.getAllResources(
+  await resourcesService.getAllResources(
     page,
     pageSize,
     sortBy,
@@ -50,7 +50,7 @@ const resources =
   }
 }
 
-export function getById(
+export async function getById(
   req: Request,
   res: Response,
   next: NextFunction
@@ -59,9 +59,9 @@ export function getById(
   try {
 
     const resource =
-      resourcesService.getResourceById(
-        String(req.params.id)
-      );
+  await resourcesService.getResourceById(
+    Number(req.params.id)
+  );
 
     return res.status(200).json({
 
@@ -74,7 +74,7 @@ export function getById(
   }
 }
 
-export function patch(
+export async function patch(
   req: Request,
   res: Response,
   next: NextFunction
@@ -83,8 +83,8 @@ export function patch(
   try {
 
     const resource =
-      resourcesService.patch(
-        String(req.params.id),
+       await resourcesService.patch(
+        Number(req.params.id),
         req.body
       );
 
@@ -99,7 +99,7 @@ export function patch(
   }
 }
 
-export function create(
+export async function create(
   req: Request,
   res: Response,
   next: NextFunction
@@ -108,7 +108,7 @@ export function create(
   try {
 
     const resource =
-      resourcesService.createResource(
+     await resourcesService.createResource(
         req.body
       );
 
@@ -123,7 +123,7 @@ export function create(
   }
 }
 
-export function update(
+export  async function update(
   req: Request,
   res: Response,
   next: NextFunction
@@ -132,8 +132,8 @@ export function update(
   try {
 
     const resource =
-      resourcesService.updateResource(
-        String(req.params.id),
+      await resourcesService.updateResource(
+        Number(req.params.id),
         req.body
       );
 
@@ -148,7 +148,7 @@ export function update(
   }
 }
 
-export function remove(
+export async function remove(
   req: Request,
   res: Response,
   next: NextFunction
@@ -156,14 +156,50 @@ export function remove(
 
   try {
 
-    resourcesService.deleteResource(
-      String(req.params.id)
+    await resourcesService.deleteResource(
+      Number(req.params.id)
     );
 
     return res.status(204).send();
 
   } catch (err) {
 
+    next(err);
+  }
+}
+export async function getStats(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+
+  try {
+
+    const result =
+      await resourcesService
+        .getAverageRating();
+        return res.status(200).json(result);
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+}
+export async function getWithReviews(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const data =
+      await resourcesService.getResourcesWithReviews();
+
+    return res.status(200).json({
+      items: data
+    });
+  } catch (err) {
     next(err);
   }
 }

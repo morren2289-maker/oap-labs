@@ -1,109 +1,99 @@
-import {
-  CreateUserRequestDto
-}
-from "../dtos/create-user-request.dto";
-import {
-  UpdateUserRequestDto
-}
-from "../dtos/update-user-request.dto";
+import { all, get, run } from "../db/dbClient";
+
+import { CreateUserRequestDto } from "../dtos/create-user-request.dto";
+import { UpdateUserRequestDto } from "../dtos/update-user-request.dto";
+
 interface User {
   id: number;
   name: string;
   email: string;
+  createdAt: string;
 }
 
-let nextId = 1;
+export async function getAll(search?: string) {
+  let sql = `
+    SELECT *
+    FROM Users
+  `;
 
-const users: User[] = [];
-
-export function getAll(
-  search?: string
-)
-{
-
-  if (!search) {
-    return users;
+  if (search) {
+    sql += `
+      WHERE name LIKE '%${search}%'
+    `;
   }
 
-  return users.filter(
-    user =>
-      user.name
-        .toLowerCase()
-        .includes(
-          search.toLowerCase()
-        )
-  );
+  sql += `
+    ORDER BY id DESC;
+  `;
+
+  return await all<User>(sql);
 }
 
-export function create(
+export async function getById(id: number) {
+  return await get<User>(`
+    SELECT *
+    FROM Users
+    WHERE id = ${id};
+  `);
+}
+
+export async function create(
   data: CreateUserRequestDto
 ) {
+  const now = new Date().toISOString();
 
-  const user: User = {
+  const result = await run(`
+    INSERT INTO Users(name, email, createdAt)
+    VALUES(
+      '${data.name}',
+      '${data.email}',
+      '${now}'
+    );
+  `);
 
-  id: nextId++,
-
-  name: data.name,
-
-  email: data.email
-};
-
-  users.push(user);
-
-  return user;
+  return await getById(result.lastID);
 }
 
-export function update(
+export async function update(
   id: number,
   data: UpdateUserRequestDto
 ) {
+  const result = await run(`
+    UPDATE Users
+    SET
+      name='${data.name}',
+      email='${data.email}'
+    WHERE id=${id};
+  `);
 
-  const user =
-    users.find(
-      user => user.id === id
-    );
-
-  if (!user) {
-    throw {
-    status: 404,
-    message: "User not found"
-  };
+  if (result.changes === 0) {
+    return null;
   }
 
-  user.name =
-    data.name;
-
-  user.email =
-    data.email;
-
-  return user;
+  return await get<User>(`
+    SELECT *
+    FROM Users
+    WHERE id=${id};
+  `);
 }
 
-export function remove(
+export async function remove(
   id: number
 ) {
+  const result = await run(`
+    DELETE FROM Users
+    WHERE id=${id};
+  `);
 
-  const index =
-    users.findIndex(
-      user => user.id === id
-    );
-
-  if (index === -1) {
-
-    throw {
-  status: 404,
-  message: "User not found"
-};
-  }
-
-  users.splice(index, 1);
+  return result.changes > 0;
 }
-export function findByEmail(
+
+export async function findByEmail(
   email: string
 ) {
-
-  return users.find(
-    user =>
-      user.email === email
-  );
+  return await get<User>(`
+    SELECT *
+    FROM Users
+    WHERE email='${email}';
+  `);
 }

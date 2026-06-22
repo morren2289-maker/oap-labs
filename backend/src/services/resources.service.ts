@@ -11,37 +11,44 @@ import {
 }
 from "../dtos/create-resource-request.dto";
 
-export function getAllResources(
+export async function getAllResources(
   page?: number,
   pageSize?: number,
   sortBy?: string,
   sortDir?: string
 ) {
 
-  return resourcesRepository.getAll(
+  return await resourcesRepository.getAll(
     page,
     pageSize,
     sortBy,
     sortDir
   );
 } 
-export function patch(
-  id: string,
+export async function patch(
+  id: number,
   dto: UpdateResourceRequestDto
 ) {
 
-  return resourcesRepository.patch(
-    id,
-    dto
-  );
+  const patched = await resourcesRepository.patch(id, dto);
+
+  if (!patched) {
+    throw {
+      status: 404,
+      code: "NOT_FOUND",
+      message: "Resource not found"
+    };
+  }
+
+  return patched;
 }
 
-export function getResourceById(
-  id: string
+export  async function getResourceById(
+  id: number
 ) {
 
   const resource =
-    resourcesRepository.getById(id);
+     await resourcesRepository.getById(id);
 
   if (!resource) {
 
@@ -59,7 +66,7 @@ export function getResourceById(
   return resource;
 }
 
-export function createResource(
+export async function createResource(
   dto: CreateResourceRequestDto
 ) {
 
@@ -81,6 +88,7 @@ export function createResource(
   }
 
   if (
+    dto.rating === undefined ||
     dto.rating < 1 ||
     dto.rating > 5
   ) {
@@ -97,16 +105,22 @@ export function createResource(
     };
   }
 
-  return resourcesRepository.create(dto);
+  return await resourcesRepository.create(dto);
+}
+export async function getAverageRating() {
+
+  return await resourcesRepository
+    .getAverageRating();
+
 }
 
-export function updateResource(
-  id: string,
+export async function updateResource(
+  id: number,
   dto: UpdateResourceRequestDto
 ) {
 
   const updated =
-    resourcesRepository.update(
+    await resourcesRepository.update(
       id,
       dto
     );
@@ -127,12 +141,12 @@ export function updateResource(
   return updated;
 }
 
-export function deleteResource(
-  id: string
+export async function deleteResource(
+  id: number
 ) {
 
   const deleted =
-    resourcesRepository.remove(id);
+    await resourcesRepository.remove(id);
 
   if (!deleted) {
 
@@ -146,4 +160,8 @@ export function deleteResource(
         "Resource not found"
     };
   }
+}
+export async function getResourcesWithReviews() {
+  return await resourcesRepository
+    .getResourcesWithReviews();
 }
