@@ -19,13 +19,13 @@ export function validateResource(
   } = req.body;
 
   const allowedTypes = [
-    "Книга",
-    "Курс",
-    "Відео",
-    "Book",
-    "Course",
-    "Video"
-  ];
+  "book",
+  "course",
+  "article",
+  "Книга",
+  "Курс",
+  "Відео"
+];
 
   const errors: string[] = [];
 
@@ -93,7 +93,8 @@ export function validateResource(
       "Rating must be from 1 to 5"
     );
   }
-
+console.log(req.body);
+console.log(errors);
   if (errors.length > 0) {
 
     return res.status(400).json({

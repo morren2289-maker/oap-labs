@@ -1,217 +1,311 @@
-# Лабораторна робота №3
+# Лабораторна робота №4
 
 ## Тема
 
-SQLite: реляційна модель, схема даних, CRUD-запити, підключення SQLite у бекенді.
+Інтеграція фронтенду та бекенду за допомогою HTTP API.
 
-## Опис проєкту
+---
 
-Проєкт реалізовано на Node.js, Express та TypeScript.
+## Мета роботи
 
-У лабораторній роботі дані зберігаються в SQLite, а не в масивах у пам'яті.
+Навчитись реалізовувати взаємодію між клієнтською та серверною частинами застосунку через REST API, налаштовувати CORS, обробляти помилки та забезпечувати стабільність контрактів між фронтендом і бекендом.
 
-## Запуск проєкту
+---
 
-Встановлення залежностей:
+# Використані технології
+
+### Frontend
+
+* HTML
+* CSS
+* TypeScript
+* Fetch API
+
+### Backend
+
+* Node.js
+* Express
+* TypeScript
+* SQLite
+* Swagger
+
+---
+
+# Структура проєкту
+
+```
+frontend/
+backend/
+```
+
+Фронтенд і бекенд запускаються окремо.
+
+---
+
+# Запуск бекенду
+
+Перейти у папку backend:
+
+```bash
+cd backend
+```
+
+Встановити залежності:
 
 ```bash
 npm install
 ```
 
-Запуск у режимі розробки:
+Запустити сервер:
 
 ```bash
 npm run dev
 ```
 
-Збірка проєкту:
+Сервер запускається за адресою:
+
+```
+http://localhost:3000
+```
+
+Swagger:
+
+```
+http://localhost:3000/api-docs
+```
+
+---
+
+# Запуск фронтенду
+
+Перейти у папку frontend:
 
 ```bash
-npm run build
+cd frontend
 ```
 
-Запуск seed:
+Запустити локальний сервер:
 
 ```bash
-npm run seed
+npx serve .
 ```
 
-## База даних
+або використати Live Server.
 
-Файл бази даних:
+Фронтенд доступний за адресою:
 
-```text
-data/app.db
+```
+http://localhost:5500
 ```
 
-### Таблиці
+---
 
-#### Users
+# API
 
-* id (PK)
-* name
-* email (UNIQUE)
-* createdAt
+Базова адреса API:
 
-#### Resources
-
-* id (PK)
-* title
-* author
-* type
-* rating
-* comment
-* createdAt
-
-#### Reviews
-
-* id (PK)
-* resourceId (FK → Resources.id)
-* userId (FK → Users.id)
-* text
-* rating
-* createdAt
-
-### Зв'язки
-
-Users (1) → (N) Reviews
-
-Resources (1) → (N) Reviews
-
-Увімкнено:
-
-```sql
-PRAGMA foreign_keys = ON;
+```
+http://localhost:3000/api/v1
 ```
 
-## Обмеження
+Основна сутність:
 
-### NOT NULL
-
-Використовується для обов'язкових полів:
-
-* name
-* email
-* title
-* author
-* type
-* rating
-* text
-
-### UNIQUE
-
-```sql
-email TEXT NOT NULL UNIQUE
+```
+Resource
 ```
 
-### CHECK
+---
 
-```sql
-CHECK(rating >= 1 AND rating <= 5)
+# Реалізовані ендпоінти
+
+### Отримати список ресурсів
+
+```
+GET /api/v1/resources
 ```
 
-## Індекс
+---
 
-Для прискорення пошуку відгуків за ресурсом:
+### Отримати ресурс за id
 
-```sql
-CREATE INDEX IF NOT EXISTS idx_reviews_resourceId
-ON Reviews(resourceId);
+```
+GET /api/v1/resources/{id}
 ```
 
-Індекс використовується під час пошуку відгуків за resourceId.
+---
 
-## API Endpoints
+### Створити ресурс
 
-### Users
-
-* GET /api/users
-* GET /api/users/:id
-* POST /api/users
-* PUT /api/users/:id
-* DELETE /api/users/:id
-
-### Resources
-
-* GET /api/resources
-* GET /api/resources/:id
-* POST /api/resources
-* PUT /api/resources/:id
-* PATCH /api/resources/:id
-* DELETE /api/resources/:id
-
-### Reviews
-
-* GET /api/reviews
-* GET /api/reviews/:id
-* POST /api/reviews
-* PATCH /api/reviews/:id
-* DELETE /api/reviews/:id
-
-## JOIN Endpoint
-
-```http
-GET /api/resources/with-reviews
+```
+POST /api/v1/resources
 ```
 
-Повертає ресурси разом із відгуками та користувачами.
+---
 
-## Endpoint статистики
+### Редагувати ресурс
 
-```http
-GET /api/resources/stats
+```
+PUT /api/v1/resources/{id}
 ```
 
-Повертає:
+---
 
-* середній рейтинг ресурсів;
-* загальну кількість ресурсів.
+### Видалити ресурс
 
-## Приклади запитів
-
-Отримати всі ресурси:
-
-```http
-GET /api/resources
+```
+DELETE /api/v1/resources/{id}
 ```
 
-Отримати ресурси з пагінацією:
+---
 
-```http
-GET /api/resources?page=1&pageSize=5
-```
-
-Отримати ресурси з відгуками:
-
-```http
-GET /api/resources/with-reviews
-```
-
-Отримати статистику:
-
-```http
-GET /api/resources/stats
-```
-
-## Формат помилок
+# Формат DTO
 
 ```json
 {
-  "code": "NOT_FOUND",
-  "message": "Resource not found"
+    "title": "Node.js Guide",
+    "author": "John Smith",
+    "type": "book",
+    "rating": 5,
+    "comment": "Useful backend book"
 }
 ```
 
-## Логування
+---
 
-При запуску застосунку виводяться повідомлення:
+# Правила сумісності DTO
 
-```text
-SQLite connected
-Migration applied: 001_init_users.sql
-Migration applied: 002_init_resources.sql
-Migration applied: 003_init_reviews.sql
-Migration applied: 004_add_indexes.sql
-Server started
+1. Заборонено перейменовувати поля, які використовує фронтенд.
+2. Заборонено видаляти існуючі поля.
+3. Дозволено додавати нові необов'язкові поля зі значеннями за замовчуванням.
+
+---
+
+# Реалізовані можливості
+
+* перегляд списку ресурсів;
+* додавання ресурсу;
+* редагування ресурсу;
+* видалення ресурсу;
+* пошук;
+* сортування;
+* клієнтська валідація;
+* серверна валідація;
+* обробка помилок;
+* кешування;
+* повтор запитів для безпечних сценаріїв.
+
+---
+
+# Стани інтерфейсу
+
+* Завантаження...
+* Немає даних
+* Успішне завантаження
+* Помилка завантаження
+
+---
+
+# Валідація
+
+Перевіряються:
+
+* обов'язкові поля;
+* мінімальна довжина назви;
+* допустимі типи ресурсу;
+* рейтинг від 1 до 5;
+* довжина коментаря.
+
+---
+
+# Обробка помилок
+
+Обробляються:
+
+* 400 Bad Request;
+* 404 Not Found;
+* 500 Internal Server Error;
+* помилки мережі;
+* недоступність бекенду.
+
+---
+
+# CORS
+
+Дозволені лише такі origin:
+
 ```
+http://localhost:5500
+http://127.0.0.1:5500
+```
+
+---
+
+# Кешування
+
+Список ресурсів кешується на фронтенді.
+
+Кеш очищається після:
+
+* створення;
+* редагування;
+* видалення.
+
+---
+
+# Retry
+
+Для GET-запитів реалізовано повторні спроби при помилках:
+
+* 429 Too Many Requests;
+* 503 Service Unavailable.
+
+Максимальна кількість спроб: 3.
+
+---
+
+# Приклади перевірки
+
+## Перевірка GET
+
+1. Запустити бекенд.
+2. Відкрити фронтенд.
+3. Переконатися, що список ресурсів відображається.
+
+---
+
+## Перевірка POST
+
+1. Заповнити форму.
+2. Натиснути "Додати".
+3. Новий запис з'являється у таблиці.
+
+---
+
+## Перевірка PUT
+
+1. Натиснути "Редагувати".
+2. Змінити дані.
+3. Натиснути "Редагувати".
+
+---
+
+## Перевірка DELETE
+
+1. Натиснути "Видалити".
+2. Запис зникає зі списку.
+
+---
+
+## Перевірка помилки мережі
+
+1. Зупинити бекенд.
+2. Оновити сторінку.
+3. Відображається повідомлення про помилку.
+
+---
+
+## Перевірка CORS
+
+Запити дозволені лише з дозволених origin.
+
 

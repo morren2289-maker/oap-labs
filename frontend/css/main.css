@@ -104,3 +104,6 @@ th {
 .field textarea.invalid {
   border: 2px solid red;
 }
+#cancelBtn {
+    display: none;
+}

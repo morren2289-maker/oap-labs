@@ -12,10 +12,22 @@ import { errorHandler } from "./middleware/error.middleware";
 import { migrate } from "./db/migrate";
 const app = express();
 
-app.use(cors());
 app.use(express.json());
 app.use(loggerMiddleware);
-
+app.use(cors({
+    origin: [
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
+    ],
+    methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH"
+],
+    allowedHeaders: ["Content-Type"]
+}));
 app.use(
   "/api-docs",
   swaggerUi.serve,
@@ -23,17 +35,17 @@ app.use(
 );
 
 app.use(
-  "/api/users",
+  "/api/v1/users",
   usersRoutes
 );
 
 app.use(
-  "/api/resources",
+  "/api/v1/resources",
   resourcesRoutes
 );
 
 app.use(
-  "/api/reviews",
+  "/api/v1/reviews",
   reviewsRoutes
 );
 
