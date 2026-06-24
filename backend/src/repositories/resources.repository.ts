@@ -66,8 +66,8 @@ export async function getById(
   return await get(`
     SELECT *
     FROM Resources
-    WHERE id = ${id};
-  `)as ResourceRow | null;
+    WHERE id = ?
+  `,[id])as ResourceRow | null;
 }
 
 export async function create(
@@ -83,16 +83,15 @@ export async function create(
       comment,
       createdAt
     )
-    VALUES
-    (
-      '${dto.title}',
-      '${dto.author}',
-      '${dto.type}',
-      ${dto.rating},
-      '${dto.comment ?? ""}',
-      '${new Date().toISOString()}'
-    );
-  `);
+    VALUES (?, ?, ?, ?, ?, ?);
+  `, [
+ dto.title,
+ dto.author,
+ dto.type,
+ dto.rating,
+ dto.comment ?? "",
+ new Date().toISOString()
+]);
 
   return await getById(result.lastID);
 }
@@ -102,16 +101,26 @@ export async function update(
   dto: UpdateResourceRequestDto
 ) {
 
-  const result = await run(`
-    UPDATE Resources
-    SET
-      title='${dto.title}',
-      author='${dto.author}',
-      type='${dto.type}',
-      rating=${dto.rating},
-      comment='${dto.comment}'
-    WHERE id=${id};
-  `);
+  const result = await run(
+  `
+  UPDATE Resources
+  SET
+    title = ?,
+    author = ?,
+    type = ?,
+    rating = ?,
+    comment = ?
+  WHERE id = ?;
+  `,
+  [
+    dto.title,
+    dto.author,
+    dto.type,
+    dto.rating,
+    dto.comment,
+    id
+  ]
+);
 
   if (result.changes === 0) {
     return null;
@@ -124,10 +133,13 @@ export async function remove(
   id: number
 ) {
 
-  const result = await run(`
-    DELETE FROM Resources
-    WHERE id=${id};
-  `);
+  const result = await run(
+  `
+  DELETE FROM Resources
+  WHERE id = ?;
+  `,
+  [id]
+);
 
   return result.changes > 0;
 }
@@ -177,16 +189,26 @@ export async function patch(
   const rating = dto.rating ?? current.rating;
   const comment = dto.comment ?? current.comment ?? "";
 
-  await run(`
-    UPDATE Resources
-    SET
-      title = '${title}',
-      author = '${author}',
-      type = '${type}',
-      rating = ${rating},
-      comment = '${comment}'
-    WHERE id = ${id};
-  `);
+  await run(
+  `
+  UPDATE Resources
+  SET
+    title = ?,
+    author = ?,
+    type = ?,
+    rating = ?,
+    comment = ?
+  WHERE id = ?;
+  `,
+  [
+    title,
+    author,
+    type,
+    rating,
+    comment,
+    id
+  ]
+);
 
   return await getById(id);
 }

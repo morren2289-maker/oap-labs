@@ -323,6 +323,12 @@ const rows = filteredResources.map((resource, index) => `
       <td>${resource.rating}</td>
       <td>${resource.comment}</td>
       <td>
+      <button
+    type="button"
+    class="reviewsBtn"
+    data-id="${resource.id}">
+    Відгуки
+</button>
         <button type="button" class="delete-btn" data-id="${resource.id}">
           Видалити
         </button>
@@ -337,26 +343,49 @@ const rows = filteredResources.map((resource, index) => `
   tableBody.innerHTML = rows;
 }
 
-tableBody.addEventListener("click", async (event) => {
+tableBody.addEventListener(
+  "click",
+  async (event) => {
 
-  const target =
-    event.target as HTMLElement;
+    const target =
+      event.target as HTMLElement;
 
-  if (target.classList.contains("delete-btn")) {
+    // Перехід на сторінку відгуків
+    if (
+      target.classList.contains(
+        "reviewsBtn"
+      )
+    ) {
 
-  const id = Number(target.dataset.id);
-  console.log("confirm");
+      const id =
+        Number(target.dataset.id);
 
-    const confirmed = confirm(
-        "Видалити ресурс?"
-    );
-    console.log(confirmed);
+      window.location.href =
+        `reviews.html?resourceId=${id}`;
 
-    if (!confirmed) {
-        return;
+      return;
     }
 
-    try {
+    // Видалення ресурсу
+    if (
+      target.classList.contains(
+        "delete-btn"
+      )
+    ) {
+
+      const id =
+        Number(target.dataset.id);
+
+      const confirmed =
+        confirm(
+          "Видалити ресурс?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
 
         await deleteResource(id);
 
@@ -364,47 +393,79 @@ tableBody.addEventListener("click", async (event) => {
 
         await loadResources(true);
 
-    } catch (error) {
+      } catch (error) {
 
-        if (error instanceof Error) {
-            alert(error.message);
+        if (
+          error instanceof Error
+        ) {
+          alert(error.message);
         }
+      }
+
+      return;
     }
-}
 
-  if (target.classList.contains("edit-btn")) {
+    // Редагування ресурсу
+    if (
+      target.classList.contains(
+        "edit-btn"
+      )
+    ) {
 
-    const id = Number(target.dataset.id);
+      const id =
+        Number(target.dataset.id);
 
-    const resource = resources.find(
-      resource => resource.id === id
-    );
-    if (!resource) {
-    return;
-}
+      const resource =
+        resources.find(
+          resource => resource.id === id
+        );
 
-    (document.getElementById("titleInput") as HTMLInputElement).value =
-      resource.title;
+      if (!resource) {
+        return;
+      }
 
-    (document.getElementById("authorInput") as HTMLInputElement).value =
-      resource.author;
+      (
+        document.getElementById(
+          "titleInput"
+        ) as HTMLInputElement
+      ).value = resource.title;
 
-    (document.getElementById("typeSelect") as HTMLSelectElement).value =
-      resource.type;
+      (
+        document.getElementById(
+          "authorInput"
+        ) as HTMLInputElement
+      ).value = resource.author;
 
-    (
-    document.getElementById("ratingInput") as HTMLInputElement).value = String(resource.rating);
+      (
+        document.getElementById(
+          "typeSelect"
+        ) as HTMLSelectElement
+      ).value = resource.type;
 
-    (document.getElementById("commentInput") as HTMLInputElement).value =
-      resource.comment;
+      (
+        document.getElementById(
+          "ratingInput"
+        ) as HTMLInputElement
+      ).value = String(
+        resource.rating
+      );
 
-    editingId = id;
-    submitBtn.textContent = "Редагувати";
-    cancelBtn.style.display = "inline-block";
+      (
+        document.getElementById(
+          "commentInput"
+        ) as HTMLInputElement
+      ).value = resource.comment;
 
-    
-}
-  });
+      editingId = id;
+
+      submitBtn.textContent =
+        "Редагувати";
+
+      cancelBtn.style.display =
+        "inline-block";
+    }
+  }
+);
 
 
 

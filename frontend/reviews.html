@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Reviews</title>
+
+    <link rel="stylesheet" href="./css/main.css">
+
+    <script
+        type="module"
+        src="./dist/reviews.js">
+    </script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Відгуки</h1>
+
+        <nav>
+            <a href="index.html">Ресурси</a>
+            |
+            <a href="reviews.html">Reviews</a>
+        </nav>
+    </header>
+
+    <section>
+
+        <h2>Додати відгук</h2>
+
+        <form id="reviewForm">
+
+            <div class="field">
+                <label>Resource ID</label>
+
+                <input
+                    id="resourceIdInput"
+                    type="number"
+                    required>
+            </div>
+
+            <div class="field">
+                <label>User ID</label>
+
+                <input
+                    id="userIdInput"
+                    type="number"
+                    value="1"
+                    required>
+            </div>
+
+            <div class="field">
+                <label>Текст</label>
+
+                <textarea
+                    id="textInput"
+                    rows="4"
+                    required>
+                </textarea>
+            </div>
+
+            <div class="field">
+                <label>Рейтинг</label>
+
+                <input
+    id="ratingInput"
+    type="number"
+    min="1"
+    max="5"
+    required>
+            </div>
+
+            <button type="submit">
+                Додати
+            </button>
+
+        </form>
+
+    </section>
+
+    <section>
+
+        <h2>Список відгуків</h2>
+
+        <table>
+
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Resource</th>
+                <th>User</th>
+                <th>Text</th>
+                <th>Rating</th>
+                <th>Дії</th>
+            </tr>
+            </thead>
+
+            <tbody id="reviewsBody">
+            </tbody>
+
+        </table>
+
+    </section>
+
+</div>
+
+</body>
+</html>

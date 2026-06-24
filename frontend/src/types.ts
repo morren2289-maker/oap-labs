@@ -23,3 +23,21 @@ export interface ResourcesResponse {
 export interface Resource extends ResourceDto {
   id: number;
 }
+export interface Review {
+  id: number;
+  resourceId: number;
+  userId: number;
+  text: string;
+  rating: number;
+  createdAt: string;
+}
+
+export interface ReviewDto {
+  resourceId: number;
+  userId: number;
+  text: string;
+  rating: number;
+}
+export interface ReviewsResponse {
+    items: Review[];
+}

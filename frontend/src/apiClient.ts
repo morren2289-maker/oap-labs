@@ -1,7 +1,11 @@
 import {
     Resource,
-    ResourceDto
-} from "./types";
+    ResourceDto,
+    ResourcesResponse,
+    Review,
+    ReviewDto,
+    ReviewsResponse
+} from "./types.js";
 export const API_BASE_URL = "http://localhost:3000/api/v1";
 async function fetchWithTimeout(
     url: string,
@@ -100,7 +104,7 @@ export async function createResource(
         {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json", "x-demo-userid": "1"
             },
             body: JSON.stringify(dto)
         }
@@ -177,4 +181,102 @@ export async function deleteResource(
 
     throw new Error(message);
 }
+}
+export async function getReviews(): Promise<ReviewsResponse> {
+    const response = await fetch(
+        `${API_BASE_URL}/reviews`
+    );
+
+    if (!response.ok) {
+        throw new Error("Помилка завантаження");
+    }
+
+    return await response.json();
+}
+
+export async function createReview(
+    dto: ReviewDto
+): Promise<Review> {
+
+    const response = await fetch(
+        `${API_BASE_URL}/reviews`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dto)
+        }
+    );
+
+    if (!response.ok) {
+
+        const error = await response.json();
+
+        throw new Error(
+            error.error?.message ??
+            error.message
+        );
+    }
+
+    const data = await response.json();
+
+    return data.data;
+}
+
+export async function updateReview(
+    id: number,
+    dto: Partial<ReviewDto>
+): Promise<Review> {
+
+    const response = await fetch(
+        `${API_BASE_URL}/reviews/${id}`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Demo-UserId": "1"
+            },
+            body: JSON.stringify(dto)
+        }
+    );
+
+    if (!response.ok) {
+
+        const error = await response.json();
+
+        throw new Error(
+            error.error?.message ??
+            error.message
+        );
+    }
+
+    const data = await response.json();
+
+    return data.data;
+}
+
+export async function deleteReview(
+    id: number
+): Promise<void> {
+
+    const response = await fetch(
+        `${API_BASE_URL}/reviews/${id}`,
+        {
+            method: "DELETE",
+            headers: {
+                "X-Demo-UserId": "1"
+            }
+        }
+    );
+
+    if (!response.ok) {
+
+        const error = await response.json();
+
+        throw new Error(
+            error.error?.message ??
+            error.message
+        );
+    }
 }

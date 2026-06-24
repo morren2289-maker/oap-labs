@@ -9,6 +9,27 @@ import {
   UpdateReviewRequestDto
 } from "../dtos/update-review-request.dto";
 
+export async function getReviewByIdForUser(
+  reviewId: number,
+  userId: number
+) {
+  const review =
+    await reviewsRepository.getByIdForUser(
+      reviewId,
+      userId
+    );
+
+  if (!review) {
+    throw {
+      status: 403,
+      code: "FORBIDDEN",
+      message: "Access denied"
+    };
+  }
+
+  return review;
+}
+
 export async function getAllReviews(
   resourceId?: number
 ) {

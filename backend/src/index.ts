@@ -13,6 +13,24 @@ import { migrate } from "./db/migrate";
 const app = express();
 
 app.use(express.json());
+app.use((req, res, next) => {
+  res.setHeader(
+    "X-Content-Type-Options",
+    "nosniff"
+  );
+
+  res.setHeader(
+    "X-Frame-Options",
+    "DENY"
+  );
+
+  res.setHeader(
+    "Referrer-Policy",
+    "no-referrer"
+  );
+
+  next();
+});
 app.use(loggerMiddleware);
 app.use(cors({
     origin: [
@@ -26,8 +44,10 @@ app.use(cors({
     "DELETE",
     "PATCH"
 ],
-    allowedHeaders: ["Content-Type"]
+    allowedHeaders: ["Content-Type",
+            "x-demo-userid"]
 }));
+
 app.use(
   "/api-docs",
   swaggerUi.serve,

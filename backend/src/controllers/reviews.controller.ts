@@ -34,10 +34,14 @@ export async function getById(
   next: NextFunction
 ) {
   try {
-    const review =
-      await reviewsService.getReviewById(
-        Number(req.params.id)
-      );
+    const currentUserId =
+  (req as any).currentUserId;
+
+const review =
+  await reviewsService.getReviewByIdForUser(
+    Number(req.params.id),
+    currentUserId
+  );
 
     return res.status(200).json({
       data: review
